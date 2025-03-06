@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "zagrebi",
+    "slug": "zagrebi",
+    "version": "2.1.3",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "scheme": "zagrebi",
+    "userInterfaceStyle": "automatic",
+    "owner": "zagrebi",
+    "splash": {
+      "image": "./assets/images/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.uros.cosic.zagrebi.me",
+      "buildNumber": "2.1.3"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      },
+      "package": "com.uros.cosic.zagrebi.me",
+      "versionCode": 11
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/favicon.png"
+    },
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {
+        "origin": false
+      },
+      "eas": {
+        "projectId": "033fa11c-fd1d-443a-a53f-34de5f97bbfd"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/033fa11c-fd1d-443a-a53f-34de5f97bbfd"
+    }
+  }
+}
