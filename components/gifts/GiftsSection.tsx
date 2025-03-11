@@ -77,20 +77,6 @@ export default function GiftsSection() {
                   )}
                 </ThemedView>
               </ThemedView>
-              <ThemedView>
-                <ThemedText style={{ fontWeight: "bold", fontSize: 15 }}>
-                  Kol.
-                </ThemedText>
-                <ThemedText
-                  style={{
-                    textAlign: "center",
-                    fontSize: 12,
-                    color: Colors.light.gray,
-                  }}
-                >
-                  {item.quantity}
-                </ThemedText>
-              </ThemedView>
             </ThemedView>
           )}
         />

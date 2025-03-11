@@ -2,7 +2,7 @@
   "expo": {
     "name": "zagrebi",
     "slug": "zagrebi",
-    "version": "2.1.3",
+    "version": "2.1.4",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "zagrebi",
@@ -16,7 +16,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.uros.cosic.zagrebi.me",
-      "buildNumber": "2.1.3"
+      "buildNumber": "2.1.4"
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +24,7 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.uros.cosic.zagrebi.me",
-      "versionCode": 11
+      "versionCode": 12
     },
     "web": {
       "bundler": "metro",
@@ -43,9 +43,7 @@
         "projectId": "033fa11c-fd1d-443a-a53f-34de5f97bbfd"
       }
     },
-    "runtimeVersion": {
-      "policy": "appVersion"
-    },
+    "runtimeVersion": "2.1.4",
     "updates": {
       "url": "https://u.expo.dev/033fa11c-fd1d-443a-a53f-34de5f97bbfd"
     }
