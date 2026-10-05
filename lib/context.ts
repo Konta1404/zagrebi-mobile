@@ -1,12 +1,12 @@
-import { createContext } from "react";
+import { createContext, Dispatch, SetStateAction } from "react";
 import { Client, Settings } from "./types";
 
 export type ClientContent = {
   client: Client;
-  setClient: (s: any) => void;
+  setClient: Dispatch<SetStateAction<Client>>;
 };
 
-export const ClientContext: any = createContext<ClientContent>({
+export const ClientContext = createContext<ClientContent>({
   client: {
     _id: "",
     hasAdditionalScratch: false,
@@ -18,11 +18,11 @@ export const ClientContext: any = createContext<ClientContent>({
 });
 
 export type SettingsContent = {
-  settings: Settings | null;
-  setSettings: (s: any) => void;
+  settings: Settings;
+  setSettings: Dispatch<SetStateAction<Settings>>;
 };
 
-export const SettingsContext: any = createContext<SettingsContent>({
-  settings: null,
+export const SettingsContext = createContext<SettingsContent>({
+  settings: { theme: "light", soundMuted: false, soundVolume: 1 },
   setSettings: () => {},
 });

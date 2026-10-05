@@ -4,6 +4,7 @@ import {
   StyleSheet,
   Text,
   TextStyle,
+  ViewStyle,
   TouchableOpacity,
   TouchableOpacityProps,
   useColorScheme,
@@ -11,7 +12,7 @@ import {
 
 type Props = TouchableOpacityProps & {
   text: string;
-  buttonStyle?: StyleProp<any>;
+  buttonStyle?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   variant?: "primary" | "secondary" | "ghost" | "outlined";
 };
@@ -27,6 +28,8 @@ export default function AppButton({
 
   return (
     <TouchableOpacity
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !!other.disabled }}
       style={[
         variant === "secondary"
           ? { backgroundColor: Colors[colorScheme ?? "light"].secondary }

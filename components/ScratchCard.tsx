@@ -1,3 +1,5 @@
+import { createCoverage, createRequestGate } from "@/lib/scratch";
+import AppButton from "./Button";
 import { handleScratch } from "@/lib/apiUtil";
 import {
   ClientContent,
@@ -45,6 +47,12 @@ const SCRATCH_CARD_HEIGHT = 175;
 
 const ScratchCard = ({ style = {}, image, click, limit }: Props) => {
   const [[width, height], setSize] = useState([0, 0]);
+  const requestGate = useRef(createRequestGate());
+  const requestStarted = useRef(false);
+  const coverage = useRef(createCoverage(0, 0));
+  const lastPoint = useRef<[number, number]>([0, 0]);
+  const [requestError, setRequestError] = useState("");
+  const [requestPending, setRequestPending] = useState(false);
   const [isScratched, setIsScratched] = useState(false);
   const [isMoved, setIsMoved] = useState(false);
   const [gift, setGift] = useState<Gift | null>(null);
@@ -64,11 +72,17 @@ const ScratchCard = ({ style = {}, image, click, limit }: Props) => {
   const { settings } = useContext<SettingsContent>(SettingsContext);
 
   const handleCardScratch = async () => {
-    if (!start) {
+    if (!requestStarted.current) {
       setHasScratched(true);
-      const scratchData = await handleScratch();
+      if (requestGate.current.pending) return false;
+      setRequestPending(true);
+      setRequestError("");
+      const scratchData = await requestGate.current.run(handleScratch);
+      if (!scratchData) return false;
+      setRequestPending(false);
 
       if (scratchData.status === "success") {
+        requestStarted.current = true;
         setGift(scratchData.data.gift);
         setGiftWinner(scratchData.data.giftWinner || null);
         setStart(true);
@@ -82,17 +96,15 @@ const ScratchCard = ({ style = {}, image, click, limit }: Props) => {
             ? prev.tokens + scratchData.data.gift.tokenAmount
             : prev.tokens,
         }));
+        return true;
       }
+      setRequestError(scratchData.message || "Please retry.");
+      return false;
     }
+    return true;
   };
 
-  const calculateScratchedPercentage = () => {
-    const scratchedBounds = path.current.computeTightBounds();
-    const scratchedArea = scratchedBounds.width * scratchedBounds.height;
-    const totalArea = width * height;
-
-    return (scratchedArea / totalArea) * 100;
-  };
+  const calculateScratchedPercentage = () => coverage.current.percentage();
 
   const handleTouchEnd = () => {
     const percentageScratched = calculateScratchedPercentage();
@@ -105,31 +117,23 @@ const ScratchCard = ({ style = {}, image, click, limit }: Props) => {
 
   const handleReset = () => {
     path.current.reset();
+    coverage.current.reset();
+    setRequestError("");
+    setGiftWinner(null);
     setStart(false);
+    requestStarted.current = false;
     setIsMoved(false);
     setIsScratched(false);
     setGift(null);
   };
 
   const handleClick = () => {
+    if (requestGate.current.pending) return;
     handleReset();
 
     if (client.scratches >= limit && !client.hasAdditionalScratch) {
       setAdModalOpen(true);
     }
-  };
-
-  const loadSound = async () => {
-    try {
-      const { sound } = await Audio.Sound.createAsync(
-        require("@/assets/sounds/scratch.mp3")
-      );
-
-      await sound.setIsMutedAsync(false);
-      await sound.setVolumeAsync(1);
-
-      setScratchSound(sound);
-    } catch {}
   };
 
   const handleSettingsChange = async () => {
@@ -140,20 +144,27 @@ const ScratchCard = ({ style = {}, image, click, limit }: Props) => {
   };
 
   useEffect(() => {
-    loadSound();
+    coverage.current = createCoverage(width, height);
+  }, [width, height]);
+
+  useEffect(() => () => requestGate.current.invalidate(), []);
+
+  useEffect(() => {
+    let disposed = false;
+    let loaded: Audio.Sound | undefined;
+    Audio.Sound.createAsync(require("@/assets/sounds/scratch.mp3"))
+      .then(async ({ sound }) => {
+        if (disposed) { await sound.unloadAsync(); return; }
+        loaded = sound;
+        setScratchSound(sound);
+      }).catch(() => {});
+    return () => { disposed = true; loaded?.unloadAsync().catch(() => {}); };
   }, []);
 
   useEffect(() => {
     handleSettingsChange();
   }, [settings, scratchSound]);
 
-  useEffect(() => {
-    return scratchSound
-      ? () => {
-          scratchSound.unloadAsync();
-        }
-      : undefined;
-  }, [scratchSound]);
 
   useEffect(() => {
     if (pageLoaded.current) handleClick();
@@ -249,7 +260,8 @@ const ScratchCard = ({ style = {}, image, click, limit }: Props) => {
             <Canvas
               style={styles.canvas}
               onTouchStart={({ nativeEvent }) => {
-                if (client.scratches < limit || client.hasAdditionalScratch) {
+                if (start || client.scratches < limit || client.hasAdditionalScratch) {
+                  lastPoint.current = [nativeEvent.locationX, nativeEvent.locationY];
                   path.current.moveTo(
                     nativeEvent.locationX,
                     nativeEvent.locationY
@@ -260,6 +272,8 @@ const ScratchCard = ({ style = {}, image, click, limit }: Props) => {
               onTouchMove={({ nativeEvent }) => {
                 if (start) {
                   setIsMoved(true);
+                  coverage.current.mark(...lastPoint.current, nativeEvent.locationX, nativeEvent.locationY);
+                  lastPoint.current = [nativeEvent.locationX, nativeEvent.locationY];
                   path.current.lineTo(
                     nativeEvent.locationX,
                     nativeEvent.locationY
@@ -305,6 +319,12 @@ const ScratchCard = ({ style = {}, image, click, limit }: Props) => {
           </>
         )}
       </View>
+      {requestError ? <Text accessibilityRole="alert">{requestError}</Text> : null}
+      <AppButton text={requestPending ? "Loading result…" : "Reveal result without scratching"}
+        disabled={requestPending || isScratched || (!start && client.scratches >= limit && !client.hasAdditionalScratch)}
+        onPress={async () => {
+          if (await handleCardScratch()) { setIsMoved(true); setIsScratched(true); }
+        }} />
       <AdModalContainer
         screen="main-cta"
         open={adModalOpen}

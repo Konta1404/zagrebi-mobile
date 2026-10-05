@@ -28,6 +28,8 @@ export default function HomeScreen() {
             style={styles.headerImage}
           />
           <TouchableOpacity
+            accessibilityRole="button"
+            accessibilityLabel="Settings"
             style={styles.settingsButton}
             onPress={() => setSettingsModalOpen(true)}
           >
